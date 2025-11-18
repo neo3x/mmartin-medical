@@ -11,6 +11,7 @@ import {
   User,
   Calendar,
   Bell,
+  TrendingUp,
   Settings,
   LogOut,
   Menu,
@@ -51,9 +52,19 @@ export default function DashboardLayout({
       icon: Pill,
     },
     {
+      name: 'Métricas',
+      href: '/dashboard/metrics',
+      icon: TrendingUp,
+    },
+    {
       name: 'Citas',
       href: '/dashboard/appointments',
       icon: Calendar,
+    },
+    {
+      name: 'Recordatorios',
+      href: '/dashboard/reminders',
+      icon: Bell,
     },
     {
       name: 'Perfil',
