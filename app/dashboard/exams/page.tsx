@@ -17,9 +17,9 @@ import Link from 'next/link';
 
 interface ExamResult {
   id: string;
-  examName: string;
-  examType: string;
-  uploadedAt: Date;
+  name: string;
+  type: string;
+  analyzedAt: Date;
   fileUrl?: string;
   interpretation?: string;
   hasCriticalValues: boolean;
@@ -141,13 +141,13 @@ export default function ExamsPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="mb-2 flex items-center gap-3">
-                      <h3 className="text-xl font-semibold">{exam.examName}</h3>
+                      <h3 className="text-xl font-semibold">{exam.name}</h3>
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-medium ${getExamTypeColor(
-                          exam.examType
+                          exam.type
                         )}`}
                       >
-                        {getExamTypeLabel(exam.examType)}
+                        {getExamTypeLabel(exam.type)}
                       </span>
                       {exam.hasCriticalValues && (
                         <span className="flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
@@ -159,7 +159,7 @@ export default function ExamsPage() {
 
                     <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
-                      {new Date(exam.uploadedAt).toLocaleDateString('es-ES', {
+                      {new Date(exam.analyzedAt).toLocaleDateString('es-ES', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -214,7 +214,7 @@ export default function ExamsPage() {
               <p className="text-sm text-muted-foreground">Último Examen</p>
               <p className="mt-1 text-sm font-medium">
                 {exams[0]
-                  ? new Date(exams[0].uploadedAt).toLocaleDateString('es-ES', {
+                  ? new Date(exams[0].analyzedAt).toLocaleDateString('es-ES', {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric',

@@ -17,9 +17,9 @@ import Link from 'next/link';
 
 interface ExamDetail {
   id: string;
-  examName: string;
-  examType: string;
-  uploadedAt: Date;
+  name: string;
+  type: string;
+  analyzedAt: Date;
   fileUrl?: string;
   rawText?: string;
   interpretation: string;
@@ -125,16 +125,16 @@ export default function ExamDetailPage() {
                   <FileText className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">{exam.examName}</h1>
+                  <h1 className="text-3xl font-bold">{exam.name}</h1>
                   <p className="text-muted-foreground">
-                    {getExamTypeLabel(exam.examType)}
+                    {getExamTypeLabel(exam.type)}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                {new Date(exam.uploadedAt).toLocaleDateString('es-ES', {
+                {new Date(exam.analyzedAt).toLocaleDateString('es-ES', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
