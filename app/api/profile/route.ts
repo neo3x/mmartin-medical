@@ -39,46 +39,37 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: {
-        medicalProfile: true,
-      },
+    const userId = session.user.id;
+    const medicalProfile = await prisma.medicalProfile.findUnique({
+      where: { userId },
     });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
 
     return NextResponse.json({
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
       },
-      profile: user.medicalProfile
+      profile: medicalProfile
         ? {
-            dateOfBirth: user.medicalProfile.dateOfBirth?.toISOString().split('T')[0],
-            gender: user.medicalProfile.gender,
-            bloodType: user.medicalProfile.bloodType,
-            height: user.medicalProfile.height,
-            weight: user.medicalProfile.weight,
-            allergies: user.medicalProfile.allergies,
-            chronicConditions: user.medicalProfile.chronicConditions,
-            currentMedications: user.medicalProfile.currentMedications,
-            emergencyContact: user.medicalProfile.emergencyContact,
-            emergencyPhone: user.medicalProfile.emergencyPhone,
-            insuranceProvider: user.medicalProfile.insuranceProvider,
-            insuranceNumber: user.medicalProfile.insuranceNumber,
-            preferredLanguage: user.medicalProfile.preferredLanguage,
-            technicalLevel: user.medicalProfile.technicalLevel,
+            dateOfBirth: medicalProfile.dateOfBirth?.toISOString().split('T')[0],
+            gender: medicalProfile.gender,
+            bloodType: medicalProfile.bloodType,
+            height: medicalProfile.height,
+            weight: medicalProfile.weight,
+            allergies: medicalProfile.allergies,
+            chronicConditions: medicalProfile.chronicConditions,
+            currentMedications: medicalProfile.currentMedications,
+            emergencyContact: medicalProfile.emergencyContact,
+            emergencyPhone: medicalProfile.emergencyPhone,
+            insuranceProvider: medicalProfile.insuranceProvider,
+            insuranceNumber: medicalProfile.insuranceNumber,
+            preferredLanguage: medicalProfile.preferredLanguage,
+            technicalLevel: medicalProfile.technicalLevel,
           }
         : null,
     });
@@ -96,23 +87,13 @@ export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
+    const userId = session.user.id;
     const body = await req.json();
     const validatedData = profileSchema.parse(body);
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
 
     // Convert dateOfBirth string to Date if present
     const dateOfBirth = validatedData.dateOfBirth
@@ -121,9 +102,9 @@ export async function PUT(req: NextRequest) {
 
     // Upsert medical profile
     const profile = await prisma.medicalProfile.upsert({
-      where: { userId: user.id },
+      where: { userId },
       create: {
-        userId: user.id,
+        userId,
         ...validatedData,
         dateOfBirth,
       },
@@ -136,7 +117,7 @@ export async function PUT(req: NextRequest) {
     // Log audit
     await prisma.auditLog.create({
       data: {
-        userId: user.id,
+        userId,
         action: 'PROFILE_UPDATE',
         resourceType: 'MEDICAL_PROFILE',
         resourceId: profile.id,

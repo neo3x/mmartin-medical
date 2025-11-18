@@ -7,33 +7,24 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
+    const userId = session.user.id;
 
     // Get stats
     const [totalChats, totalExams, upcomingAppointments, activeReminders] =
       await Promise.all([
         prisma.chatSession.count({
-          where: { userId: user.id },
+          where: { userId },
         }),
         prisma.examResult.count({
-          where: { userId: user.id },
+          where: { userId },
         }),
         prisma.appointment.count({
           where: {
-            userId: user.id,
+            userId,
             dateTime: {
               gte: new Date(),
             },
@@ -44,7 +35,7 @@ export async function GET(req: NextRequest) {
         }),
         prisma.reminder.count({
           where: {
-            userId: user.id,
+            userId,
             isActive: true,
           },
         }),
@@ -53,7 +44,7 @@ export async function GET(req: NextRequest) {
     // Get recent activity
     const [recentChats, recentExams, recentAppointments] = await Promise.all([
       prisma.chatSession.findMany({
-        where: { userId: user.id },
+        where: { userId },
         orderBy: { updatedAt: 'desc' },
         take: 3,
         select: {
@@ -64,19 +55,19 @@ export async function GET(req: NextRequest) {
         },
       }),
       prisma.examResult.findMany({
-        where: { userId: user.id },
-        orderBy: { uploadedAt: 'desc' },
+        where: { userId },
+        orderBy: { analyzedAt: 'desc' },
         take: 2,
         select: {
           id: true,
-          examName: true,
-          examType: true,
-          uploadedAt: true,
+          name: true,
+          type: true,
+          analyzedAt: true,
         },
       }),
       prisma.appointment.findMany({
         where: {
-          userId: user.id,
+          userId,
           dateTime: {
             gte: new Date(),
           },
@@ -104,9 +95,9 @@ export async function GET(req: NextRequest) {
       ...recentExams.map((exam) => ({
         id: exam.id,
         type: 'exam' as const,
-        title: exam.examName,
-        description: exam.examType,
-        timestamp: exam.uploadedAt,
+        title: exam.name,
+        description: exam.type,
+        timestamp: exam.analyzedAt,
       })),
       ...recentAppointments.map((apt) => ({
         id: apt.id,

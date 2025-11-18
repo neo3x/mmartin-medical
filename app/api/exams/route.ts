@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/db/prisma';
 import { uploadUserFile } from '@/lib/storage/s3';
@@ -16,9 +16,9 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id;
     const formData = await req.formData();
     const file = formData.get('file') as File;
-    const examType = formData.get('type') as string;
-    const examName = formData.get('name') as string;
-    const examDate = formData.get('date') as string;
+    const examType = formData.get('examType') as string;
+    const examName = formData.get('examName') as string;
+    const examDate = formData.get('examDate') as string;
 
     if (!file) {
       return NextResponse.json(
@@ -73,6 +73,15 @@ export async function POST(req: NextRequest) {
       medications: userProfile?.currentMedications || [],
     });
 
+    // Extract normal values from findings
+    const normalValues = analysis.findings
+      .filter((f) => f.status === 'normal')
+      .map((f) => ({
+        parameter: f.parameter,
+        value: f.value,
+        normalRange: f.normalRange,
+      }));
+
     // Save to database
     const examResult = await prisma.examResult.create({
       data: {
@@ -82,11 +91,13 @@ export async function POST(req: NextRequest) {
         fileUrl: url,
         fileName: file.name,
         fileSize: file.size,
+        rawText: analysis.rawText,
         interpretation: analysis.interpretation,
         findings: analysis.findings as any,
         recommendations: analysis.recommendations,
         hasCriticalValues: analysis.criticalValues.length > 0,
         criticalValues: analysis.criticalValues as any,
+        normalValues: normalValues as any,
         examDate: examDate ? new Date(examDate) : null,
       },
     });

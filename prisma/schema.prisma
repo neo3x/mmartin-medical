@@ -273,13 +273,15 @@ model ExamResult {
   fileSize Int
 
   // Análisis
-  interpretation String @db.Text
-  findings       Json   @db.JsonB // Hallazgos estructurados
+  rawText        String?  @db.Text // Texto extraído del PDF
+  interpretation String   @db.Text
+  findings       Json     @db.JsonB // Hallazgos estructurados
   recommendations String[] // Recomendaciones
 
   // Valores críticos
   hasCriticalValues Boolean @default(false)
   criticalValues    Json?   @db.JsonB
+  normalValues      Json?   @db.JsonB // Valores normales detectados
 
   // Comparación con exámenes anteriores
   comparedWithExams String[] // IDs de exámenes anteriores
