@@ -10,25 +10,16 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
+    const userId = session.user.id;
 
     const exam = await prisma.examResult.findFirst({
       where: {
         id: params.id,
-        userId: user.id,
+        userId,
       },
     });
 
@@ -42,9 +33,9 @@ export async function GET(
     return NextResponse.json({
       exam: {
         id: exam.id,
-        examName: exam.examName,
-        examType: exam.examType,
-        uploadedAt: exam.uploadedAt,
+        name: exam.name,
+        type: exam.type,
+        analyzedAt: exam.analyzedAt,
         fileUrl: exam.fileUrl,
         rawText: exam.rawText,
         interpretation: exam.interpretation,

@@ -29,23 +29,14 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
+    const userId = session.user.id;
 
     const metrics = await prisma.healthMetric.findMany({
-      where: { userId: user.id },
+      where: { userId },
       orderBy: { recordedAt: 'desc' },
       take: 100,
     });
@@ -115,27 +106,17 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
+    const userId = session.user.id;
     const body = await req.json();
     const validatedData = metricSchema.parse(body);
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
-
     const metric = await prisma.healthMetric.create({
       data: {
-        userId: user.id,
+        userId,
         metricType: validatedData.metricType,
         value: validatedData.value,
         unit: validatedData.unit,
@@ -164,7 +145,7 @@ export async function POST(req: NextRequest) {
     if (isCritical) {
       await prisma.notification.create({
         data: {
-          userId: user.id,
+          userId,
           title: 'Alerta: Valor Crítico',
           message: criticalMessage,
           type: 'ALERT',

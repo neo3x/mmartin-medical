@@ -17,23 +17,14 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
+    const userId = session.user.id;
 
     const appointments = await prisma.appointment.findMany({
-      where: { userId: user.id },
+      where: { userId },
       orderBy: { dateTime: 'asc' },
     });
 
@@ -62,27 +53,17 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
+    const userId = session.user.id;
     const body = await req.json();
     const validatedData = appointmentSchema.parse(body);
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
-
     const appointment = await prisma.appointment.create({
       data: {
-        userId: user.id,
+        userId,
         title: validatedData.title,
         description: validatedData.description,
         dateTime: validatedData.dateTime,
@@ -98,7 +79,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.reminder.create({
       data: {
-        userId: user.id,
+        userId,
         title: `Recordatorio: ${validatedData.title}`,
         description: `Tienes una cita mañana a las ${validatedData.dateTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`,
         reminderType: 'APPOINTMENT',

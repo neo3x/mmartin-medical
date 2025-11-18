@@ -17,23 +17,14 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
+    const userId = session.user.id;
 
     const reminders = await prisma.reminder.findMany({
-      where: { userId: user.id },
+      where: { userId },
       orderBy: { scheduledFor: 'asc' },
     });
 
@@ -64,27 +55,17 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
+    const userId = session.user.id;
     const body = await req.json();
     const validatedData = reminderSchema.parse(body);
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
-
     const reminder = await prisma.reminder.create({
       data: {
-        userId: user.id,
+        userId,
         title: validatedData.title,
         description: validatedData.description,
         reminderType: validatedData.reminderType,
@@ -97,7 +78,7 @@ export async function POST(req: NextRequest) {
     // Create notification for upcoming reminder
     await prisma.notification.create({
       data: {
-        userId: user.id,
+        userId,
         title: `Recordatorio: ${validatedData.title}`,
         message: validatedData.description || 'Tienes un recordatorio pendiente',
         type: 'REMINDER',

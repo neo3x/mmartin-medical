@@ -10,20 +10,11 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
-    }
+    const userId = session.user.id;
 
     const medication = await prisma.medication.findUnique({
       where: { id: params.id },
@@ -39,7 +30,7 @@ export async function GET(
     // Log medication view
     await prisma.vademecumQuery.create({
       data: {
-        userId: user.id,
+        userId,
         query: medication.name,
         searchType: 'VIEW',
         resultsCount: 1,

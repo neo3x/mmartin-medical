@@ -7,10 +7,11 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
+    const userId = session.user.id;
     const searchParams = req.nextUrl.searchParams;
     const query = searchParams.get('q');
 
@@ -18,17 +19,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         { error: 'Parámetro de búsqueda requerido' },
         { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
       );
     }
 
@@ -65,7 +55,7 @@ export async function GET(req: NextRequest) {
     // Log search query
     await prisma.vademecumQuery.create({
       data: {
-        userId: user.id,
+        userId,
         query,
         searchType: 'TEXT',
         resultsCount: medications.length,
