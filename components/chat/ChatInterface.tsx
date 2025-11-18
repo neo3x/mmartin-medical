@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, Mic } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { VoiceRecorder } from './VoiceRecorder';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -88,6 +89,10 @@ export function ChatInterface({ sessionId, onSessionCreate }: ChatInterfaceProps
     }
   };
 
+  const handleVoiceTranscription = (text: string) => {
+    setInput(text);
+  };
+
   return (
     <div className="flex h-full flex-col">
       {/* Messages */}
@@ -142,9 +147,13 @@ export function ChatInterface({ sessionId, onSessionCreate }: ChatInterfaceProps
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Escribe tu mensaje..."
+            placeholder="Escribe tu mensaje o usa el micrófono..."
             className="flex-1 resize-none rounded-lg border bg-background px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
             rows={1}
+            disabled={isLoading}
+          />
+          <VoiceRecorder
+            onTranscription={handleVoiceTranscription}
             disabled={isLoading}
           />
           <Button
