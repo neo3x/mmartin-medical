@@ -6,6 +6,12 @@ import { ExamType, Prisma } from '@prisma/client';
 import { uploadUserFile } from '@/lib/storage/s3';
 import { analyzeMedicalExam } from '@/lib/pdf/analyzer';
 import { addToRAG } from '@/lib/vector/rag';
+import {
+  validatePDFFile,
+  validatePDFBuffer,
+  sanitizeFilename,
+} from '@/lib/validation/file';
+import { BadRequestError, formatErrorResponse } from '@/lib/errors/http';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,26 +28,15 @@ export async function POST(req: NextRequest) {
     const examDate = formData.get('examDate') as string;
 
     if (!file) {
-      return NextResponse.json(
-        { error: 'No se proporcionó archivo' },
-        { status: 400 }
-      );
+      throw new BadRequestError('No se proporcionó archivo', 'FILE_REQUIRED');
     }
 
-    // Validate file type
-    if (file.type !== 'application/pdf') {
-      return NextResponse.json(
-        { error: 'Solo se permiten archivos PDF' },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size (10MB max)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: 'El archivo es demasiado grande (máximo 10MB)' },
-        { status: 400 }
+    // Validate PDF file
+    const fileValidation = validatePDFFile(file);
+    if (!fileValidation.valid && fileValidation.error) {
+      throw new BadRequestError(
+        fileValidation.error.message,
+        fileValidation.error.code
       );
     }
 
@@ -49,11 +44,23 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    // Validate buffer is actually a PDF
+    const bufferValidation = validatePDFBuffer(buffer);
+    if (!bufferValidation.valid && bufferValidation.error) {
+      throw new BadRequestError(
+        bufferValidation.error.message,
+        bufferValidation.error.code
+      );
+    }
+
+    // Sanitize filename
+    const safeFilename = sanitizeFilename(file.name);
+
     // Upload to storage
     const { key, url } = await uploadUserFile(
       userId,
       buffer,
-      file.name,
+      safeFilename,
       file.type,
       'exam'
     );
@@ -120,8 +127,22 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Exam upload error:', error);
+
+    // Handle custom HTTP errors
+    if (error instanceof BadRequestError) {
+      return NextResponse.json(formatErrorResponse(error), {
+        status: error.statusCode,
+      });
+    }
+
+    // Handle generic errors
     return NextResponse.json(
-      { error: 'Error al procesar examen' },
+      {
+        error: {
+          code: 'EXAM_PROCESSING_ERROR',
+          message: 'Error al procesar examen',
+        },
+      },
       { status: 500 }
     );
   }
