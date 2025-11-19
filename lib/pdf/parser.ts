@@ -25,12 +25,16 @@ export async function extractPagesFromPDF(buffer: Buffer) {
   }
 }
 
+export interface PDFMetadata {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
 export interface PDFAnalysis {
   text: string;
   wordCount: number;
   pageCount: number;
   hasImages: boolean;
-  metadata: any;
+  metadata: PDFMetadata;
 }
 
 export async function analyzePDF(buffer: Buffer): Promise<PDFAnalysis> {

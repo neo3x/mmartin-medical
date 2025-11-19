@@ -1,5 +1,6 @@
 import { getDefaultProvider } from '../ai/providers/factory';
 import { prisma } from '../db/prisma';
+import { Prisma } from '@prisma/client';
 import * as pinecone from './pinecone';
 import * as chroma from './chroma';
 
@@ -35,7 +36,7 @@ export async function addToRAG(
         userId,
         content,
         vectorId,
-        metadata: metadata as any,
+        metadata: metadata as Prisma.JsonObject,
         source: metadata.source,
         sourceId: metadata.sourceId,
       },

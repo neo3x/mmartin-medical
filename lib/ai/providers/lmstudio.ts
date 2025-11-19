@@ -137,8 +137,18 @@ export class LMStudioProvider extends BaseAIProvider {
       throw new Error(`LMStudio error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    const results = data.data.map((item: any) => ({
+    interface EmbeddingItem {
+      embedding: number[];
+      index: number;
+    }
+
+    interface EmbeddingResponse {
+      data: EmbeddingItem[];
+      usage?: { total_tokens: number };
+    }
+
+    const data = await response.json() as EmbeddingResponse;
+    const results = data.data.map((item) => ({
       embedding: item.embedding,
       usage: { totalTokens: data.usage?.total_tokens || 0 },
     }));

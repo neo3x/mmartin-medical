@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/db/prisma';
+import { TechnicalLevel } from '@prisma/client';
 import { getDefaultProvider } from '@/lib/ai/providers/factory';
 import { augmentPrompt } from '@/lib/vector/rag';
 import { getSystemPrompt, buildContextualPrompt } from '@/lib/ai/prompts';
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     const baseSystemPrompt = getSystemPrompt(
       'medical_assistant',
-      session.user.technicalLevel as any
+      (session.user.technicalLevel as TechnicalLevel) || 'MODERATE'
     );
 
     const contextualPrompt = buildContextualPrompt({

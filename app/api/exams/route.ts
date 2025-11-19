@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/db/prisma';
+import { ExamType, Prisma } from '@prisma/client';
 import { uploadUserFile } from '@/lib/storage/s3';
 import { analyzeMedicalExam } from '@/lib/pdf/analyzer';
 import { addToRAG } from '@/lib/vector/rag';
@@ -86,18 +87,18 @@ export async function POST(req: NextRequest) {
     const examResult = await prisma.examResult.create({
       data: {
         userId,
-        type: examType as any,
+        type: examType as ExamType,
         name: examName,
         fileUrl: url,
         fileName: file.name,
         fileSize: file.size,
         rawText: analysis.rawText,
         interpretation: analysis.interpretation,
-        findings: analysis.findings as any,
+        findings: analysis.findings as Prisma.JsonArray,
         recommendations: analysis.recommendations,
         hasCriticalValues: analysis.criticalValues.length > 0,
-        criticalValues: analysis.criticalValues as any,
-        normalValues: normalValues as any,
+        criticalValues: analysis.criticalValues as Prisma.JsonArray,
+        normalValues: normalValues as Prisma.JsonArray,
         examDate: examDate ? new Date(examDate) : null,
       },
     });

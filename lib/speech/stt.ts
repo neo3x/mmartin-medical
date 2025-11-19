@@ -12,7 +12,8 @@ export async function transcribeAudio(
 ): Promise<string> {
   try {
     const provider = createOpenAIProvider();
-    return await provider.transcribe(audioBuffer as any, options);
+    // Type assertion needed due to OpenAI SDK accepting both File and Buffer
+    return await provider.transcribe(audioBuffer as File | Buffer, options);
   } catch (error) {
     console.error('Transcription error:', error);
     throw new Error('Failed to transcribe audio');

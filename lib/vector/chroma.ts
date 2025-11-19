@@ -53,12 +53,15 @@ export async function searchEmbeddings(
     return [];
   }
 
-  return results.ids[0].map((id, index) => ({
-    id,
-    score: 1 - (results.distances?.[0]?.[index] || 0), // Convert distance to similarity
-    content: (results.metadatas?.[0]?.[index] as any)?.content as string,
-    metadata: results.metadatas?.[0]?.[index],
-  }));
+  return results.ids[0].map((id, index) => {
+    const metadata = results.metadatas?.[0]?.[index] as Record<string, unknown> | undefined;
+    return {
+      id,
+      score: 1 - (results.distances?.[0]?.[index] || 0), // Convert distance to similarity
+      content: (metadata?.content as string) || '',
+      metadata,
+    };
+  });
 }
 
 export async function deleteEmbeddings(userId: string, vectorIds: string[]) {

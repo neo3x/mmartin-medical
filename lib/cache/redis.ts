@@ -18,7 +18,7 @@ redis.on('connect', () => {
 
 export async function setCache(
   key: string,
-  value: any,
+  value: unknown,
   expirationSeconds?: number
 ) {
   const serialized = JSON.stringify(value);

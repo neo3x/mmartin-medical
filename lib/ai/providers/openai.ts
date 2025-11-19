@@ -174,7 +174,8 @@ export class OpenAIProvider extends BaseAIProvider {
     }
   ): Promise<string> {
     const response = await this.client.audio.transcriptions.create({
-      file: audioFile as any,
+      // Type assertion needed due to OpenAI SDK accepting both File and Buffer
+      file: audioFile as File | Buffer,
       model: 'whisper-1',
       language: options?.language,
       prompt: options?.prompt,
