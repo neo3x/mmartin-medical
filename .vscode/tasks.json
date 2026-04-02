@@ -1,0 +1,95 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Bootstrap Workspace",
+      "type": "shell",
+      "command": "npm install && npx prisma generate && npx prisma validate && npm run lint && npm run type-check",
+      "problemMatcher": []
+    },
+    {
+      "label": "Validate Project",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check && npm run build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Unit Tests",
+      "type": "shell",
+      "command": "npm run test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Coverage",
+      "type": "shell",
+      "command": "npm run test:coverage",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run E2E",
+      "type": "shell",
+      "command": "npm run test:e2e",
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker Sanity",
+      "type": "shell",
+      "command": "docker compose config",
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase 0 Validate",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check",
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase 1 Validate",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check",
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase 2 Validate",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check && npm run build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase 3 Validate",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check && npm run build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase 4 Validate",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check && npm run test && npm run build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase 5 Validate",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check && npm run test && npm run build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase 6 Validate",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check && npm run test && npm run build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase 7 Validate",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check && npm run test && npm run build && docker compose config",
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase 8 Validate",
+      "type": "shell",
+      "command": "npm run lint && npm run type-check && npm run test && npm run build",
+      "problemMatcher": []
+    }
+  ]
+}
